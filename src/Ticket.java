@@ -1,12 +1,18 @@
-public class Biglietto {
-    private Operazioni tipo;
+public class Ticket {
+    private Operations type;
 
-    public Biglietto(Operazioni tipo){
-        this.tipo = tipo;
+    public Ticket(Operations type){
+        this.type = type;
     }
 
-    public Operazioni getTipo(){
-        return this.tipo;
+    public Operations getType(){
+        return this.type;
+    }
+
+    @Override
+    public String toString(){
+        String fin = "";
+        return fin + this.type;
     }
 
 }
