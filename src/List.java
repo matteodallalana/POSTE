@@ -1,10 +1,11 @@
 import java.io.IO;
+import java.util.function.Predicate;
 
 public class List<T>{
     private ListItem<T> head;
     private ListItem<T> tail;
 
-    protected  List() {
+    protected List() {
         this.head = null;
         this.tail = null;
     }
@@ -15,27 +16,26 @@ public class List<T>{
 
         if(this.head == null){
             this.head = newItem;
-            this.tail = head;
+            this.tail = newItem;
             return;
-        }else if(head != null){
-            head.setPrev(newItem);
         }
+
+        head.setPrev(newItem);
         head = newItem;
     }
 
-    protected  void addTail(T value){
+    protected void addTail(T value){
         ListItem<T> newItem = new ListItem<T>(value);
 
         if(this.head == null){
             this.head = newItem;
-            this.tail = head;
+            this.tail = newItem;
             return;
         }
 
         newItem.setPrev(this.tail);
         this.tail.setNext(newItem);
-        this.tail = this.tail.getNext();
-
+        this.tail = newItem;
     }
 
     protected void insert(int index, T value){
@@ -60,12 +60,13 @@ public class List<T>{
         }
     }
 
-    protected  T removeHead(){
+    protected T removeHead(){
         if(this.head == null){
-            System.out.println("la lista é vuota");
+            IO.println("La lista è vuota");
             return null;
         }
-        T removedElement = this.tail.getValue();
+        // BUG CORRETTO: prima leggeva il valore dalla coda (tail) invece che dalla testa
+        T removedElement = this.head.getValue();
 
         if(this.head == this.tail){
             this.head = null;
@@ -78,9 +79,9 @@ public class List<T>{
         return removedElement;
     }
 
-    protected  T removeTail(){
+    protected T removeTail(){
         if(this.head == null){
-            System.out.println("La lista é vuota");
+            IO.println("La lista è vuota");
             return null;
         }
 
@@ -97,45 +98,62 @@ public class List<T>{
         return removedElement;
     }
 
-    protected  void remove(int index){
+    // ora restituisce l'elemento rimosso (prima era void)
+    protected T remove(int index){
         if(head == null){
-            IO.println("La lista é vuota");
-            return;
-        }else if(index < 0){
-            IO.println("Indice non valido");
-            return;
-        }else{
-
-            ListItem<T> cur = head;
-            int cont = 0;
-
-            while(cur != null && cont < index){
-                cur = cur.getNext();
-                cont ++;
-            }
-
-            if (cur == null){
-                IO.println("Indice fuori dal limite");
-                return;
-            }else if(cur == head){
-                head = cur.getNext();
-                if(head != null){
-                    head.setPrev(null);
-                }else {
-                    tail = null;
-                }
-            }
-
-            else if (cur == tail){
-                tail = cur.getPrev();
-                if(tail != null){
-                    tail.setNext(null);
-                }
-            }else {
-                cur.getPrev().setNext(cur.getNext());
-                cur.getNext().setPrev(cur.getPrev());
-            }
+            IO.println("La lista è vuota");
+            return null;
         }
+        if(index < 0){
+            IO.println("Indice non valido");
+            return null;
+        }
+
+        ListItem<T> cur = head;
+        int cont = 0;
+
+        while(cur != null && cont < index){
+            cur = cur.getNext();
+            cont ++;
+        }
+
+        if (cur == null){
+            IO.println("Indice fuori dal limite");
+            return null;
+        }
+
+        return unlink(cur);
+    }
+
+    // rimuove e restituisce il primo elemento che soddisfa la condizione, null se non esiste
+    protected T removeFirst(Predicate<T> condition){
+        ListItem<T> cur = head;
+        while(cur != null && !condition.test(cur.getValue())){
+            cur = cur.getNext();
+        }
+        if(cur == null){
+            return null;
+        }
+        return unlink(cur);
+    }
+
+    // scollega un nodo dalla lista aggiornando head/tail/riferimenti
+    private T unlink(ListItem<T> cur){
+        if(cur == head){
+            head = cur.getNext();
+            if(head != null){
+                head.setPrev(null);
+            }else{
+                tail = null;
+            }
+        }else if(cur == tail){
+            tail = cur.getPrev();
+            tail.setNext(null);
+        }else{
+            cur.getPrev().setNext(cur.getNext());
+            cur.getNext().setPrev(cur.getPrev());
+        }
+        return cur.getValue();
     }
 
     public T get(int index){
@@ -154,15 +172,18 @@ public class List<T>{
             cur = cur.getNext();
             cont ++;
         }
+        // BUG CORRETTO: se l'indice era fuori dal limite andava in NullPointerException
+        if(cur == null){
+            IO.println("Indice fuori dal limite");
+            return null;
+        }
         return cur.getValue();
     }
 
     public void clear(){
-        ListItem<T> cur = head;
-        while(cur != null){
-            cur = cur.getNext();
-            this.head = null;
-        }
+        // BUG CORRETTO: la tail non veniva azzerata
+        this.head = null;
+        this.tail = null;
     }
 
     public boolean isEmpty() {
@@ -182,11 +203,12 @@ public class List<T>{
 
     @Override
     public String toString() {
+        // BUG CORRETTO: con la lista vuota stampava e poi andava in NullPointerException
         if(head == null){
-            IO.println("La lista è vuota");
+            return "[ lista vuota ]";
         }
 
-        String finalString = " ";
+        String finalString = "";
         ListItem<T> cur = head;
 
         finalString += "Head: " + this.head.getValue() + "\n";
@@ -202,23 +224,5 @@ public class List<T>{
         }
         finalString += " ]";
         return finalString;
-
     }
-
-    /*
-    public T[] toArray(){
-        int size = this.size();
-        T[] array = new T[size];
-
-        ListItem<T> cur = head;
-        int cont = 0;
-        while(cur != null){
-            System.out.println(cur.getValue());
-            array[cont] = cur.getValue();
-            cont ++;
-            cur = cur.getNext();
-        }
-        return array;
-    }*/
-
 }
