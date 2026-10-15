@@ -1,23 +1,53 @@
-import java.util.function.Predicate;
+import java.util.Objects;
 
-public class Queue<T> extends List<T>{
+public class Queue<T> extends List<T> {
     public Queue(){
         super();
     }
 
-    // inserisce in fondo alla coda
     public void enqueue(T value){
-        this.addTail(value);
+        this.addHead(value);
     }
 
-    // senza parametro: restituisce il primo elemento entrato in coda
-    public T deque(){
-        return this.removeHead();
+    /**
+     * Removes the item at index.
+     *
+     * @param value of the item to remove
+     */
+    protected T dequeueWithParam(Operations value) {
+        if (this.getHead() == null) {
+            System.out.println(
+                    "List empty, couldn't find " + value + "."
+            );
+            return null;
+        }
+
+        Node<T> cur = this.getHead();
+
+        //Search for the item to remove
+        while (cur != null && !Objects.equals(cur.getValue().toString(), value.toString())) {
+            cur = cur.getNext();
+        }
+
+        if (cur == null) {
+            System.out.println("Prodotto " + value + " non trovato.");
+            return null;
+        }else if (cur == this.getHead()) {
+            return this.removeHead();
+        }else if (cur == this.getTail()) {
+            return this.removeTail();
+        }else{
+            Node<T> prev = cur.getPrev();
+            Node<T> next = cur.getNext();
+            prev.setNext(next);
+            next.setPrev(prev);
+            cur.setPrev(null);
+            cur.setNext(null);
+            return cur.getValue();
+        }
     }
 
-    // con condizione: restituisce il primo elemento (in ordine di arrivo) che la soddisfa,
-    // oppure null se non ce ne sono
-    public T deque(Predicate<T> condition){
-        return this.removeFirst(condition);
+    public T dequeue(){
+        return this.removeTail();
     }
 }
