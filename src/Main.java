@@ -1,4 +1,4 @@
-public static Queue<Ticket> queue = new Queue<Ticket>();
+public static Queue queue = new Queue();
 
 void main() {
     queue.enqueue(new Ticket(Operations.P));
